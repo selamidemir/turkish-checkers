@@ -1,2 +1,3 @@
-# turkish-checkers
-Turkish Checkers game created with React
+# Türk Daması
+
+Türk daması oyunu. React ve Redux temelinde geliştirilecektir.
