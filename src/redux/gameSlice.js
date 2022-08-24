@@ -1,5 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { createBoard, gameFindWhiteMoves, gameSetMandatoryMoves } from "./game";
+import { createBoard, gameFindWhiteMoves, gameFindBlackMoves, findMandatoryMoves } from "./game";
 import { nanoid } from "@reduxjs/toolkit";
 
 
@@ -33,32 +33,12 @@ export const gameSlice = createSlice({
             state.selectedItem.isSelected = "selected-item";
         },
         findWhiteMoves: (state, action) => {
-            console.log("white wihtout dama");
             const items = gameFindWhiteMoves({board: state.board, selectedCell: state.board[state.selectedItem.cellId]});
             for(let key in items) state.board[key].navigable = true;
         },
         findBlackMoves: (state, action) => {
-            console.log("black without dama");
-            const selectedCell = state.board[state.selectedItem.cellId];
-            for (let cell in state.board) {
-                // Öndeki kare boş mu? x + 1
-                if (((selectedCell.x - 1) === state.board[cell].x)
-                    && selectedCell.y === state.board[cell].y
-                    && !state.board[cell].item
-                ) {
-                    state.board[cell].navigable = true;
-                } else if ((selectedCell.y - 1) === state.board[cell].y
-                    && selectedCell.x === state.board[cell].x
-                    && !state.board[cell].item
-                ) {
-                    state.board[cell].navigable = true;
-                } else if ((selectedCell.y + 1) === state.board[cell].y
-                    && selectedCell.x === state.board[cell].x
-                    && !state.board[cell].item
-                ) {
-                    state.board[cell].navigable = true;
-                }
-            }
+            const items = gameFindBlackMoves({board: state.board, selectedCell: state.board[state.selectedItem.cellId]});
+            for(let key in items) state.board[key].navigable = true;
         },
         findWhiteDamaMoves: (state, action) => {
             console.log("white with dama")
@@ -78,8 +58,9 @@ export const gameSlice = createSlice({
             state.currentCell = null;
             state.lastCell = null;
             state.currentGamer = state.currentGamer.id === state.gamerOne.id ? state.gamerTwo : state.gamerOne;
+
             for (let cell in state.board) state.board[cell].navigable = false;
-            gameSetMandatoryMoves(state.board, state.currentGamer);
+            findMandatoryMoves(state.board, state.currentGamer);
         }
     }
 });
