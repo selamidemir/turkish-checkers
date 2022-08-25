@@ -43,15 +43,15 @@ const findAllMandatoryMoves = (b, cs, currentGamer) => {
     const cells = [...cs];
     let allMoves = [];
 
-    const movesFront = (b, c) => {
+    const movesFront = (b, c, routes, route) => {
         // Öne giden hareketleri bul
         const board = [...b];
-        let moves = [];
         let deletedItem = null;
         let deletedItemCell = null;
         let movedCell = null;
+        let isRouteEnd = false;
         board.forEach(cell => {
-            if(cell.y === c.y) return;
+            if (cell.y === c.y) return;
             if ( // silinen taşı bulalım
                 ((cell.y === c.y + 1 && currentGamer.color === 'white') || (cell.y === c.y - 1 && currentGamer.color === 'black'))
                 && cell.item && cell.item.com !== currentGamer.color
@@ -65,25 +65,23 @@ const findAllMandatoryMoves = (b, cs, currentGamer) => {
                 && !cell.item
             ) movedCell = cell;
         });
-        if (movedCell && deletedItemCell && deletedItem) moves.push({
-            deletedItem,
-            deletedItemCell,
-            movedCell
-        });
-        if (movedCell) moves = [...moves, ...findAllMoves(board, movedCell)];
-        // console.log("moves: ", moves);
-        return moves;
+        if (movedCell && deletedItemCell && deletedItem) {
+            routes[route].moves.push({deletedItem, deletedItemCell, movedCell});
+            findAllMoves(board, movedCell, routes, route);
+            isRouteEnd = true;
+        } else isRouteEnd = false;
+        return isRouteEnd;
     }
 
-    const movesLeft = (b, c) => {
+    const movesLeft = (b, c, routes, route) => {
         // Sala giden hareketleri bul
         const board = [...b];
-        let moves = [];
+        let isRouteEnd = false;
         let deletedItem = null;
         let deletedItemCell = null;
         let movedCell = null;
         board.forEach(cell => {
-            if(cell.y === c.y) return;
+            if (cell.y === c.y) return;
             if ( // silinen taşı bulalım
                 ((cell.x === c.x - 1 && currentGamer.color === 'white') || (cell.x === c.x + 1 && currentGamer.color === 'black'))
                 && cell.item && cell.item.color !== currentGamer.color
@@ -97,26 +95,24 @@ const findAllMandatoryMoves = (b, cs, currentGamer) => {
                 && !cell.item
             ) movedCell = cell;
         });
-        if (movedCell && deletedItemCell && deletedItem) moves.push({
-            deletedItem,
-            deletedItemCell,
-            movedCell
-        });
-        if (movedCell) moves = [...moves, ...findAllMoves(board, movedCell)];
-
-        return moves;
+        if (movedCell && deletedItemCell && deletedItem) {
+            routes[route].moves.push({deletedItem, deletedItemCell, movedCell});
+            findAllMoves(board, movedCell, routes, route);
+            isRouteEnd = true;
+        } else isRouteEnd = false;
+        return isRouteEnd;
     }
 
-    const movesRight = (b, c) => {
+    const movesRight = (b, c, routes, route) => {
         // Sağa giden hareketleri bul
         const board = [...b];
-        let moves = [];
         let deletedItem = null;
         let deletedItemCell = null;
         let movedCell = null;
+        let isRouteEnd = false;
         board.forEach(cell => {
 
-            if(cell.y !== c.y) return;
+            if (cell.y !== c.y) return;
             if ( // silinen taşı bulalım
                 ((cell.x === c.x + 1 && currentGamer.color === 'white') || (cell.x === c.x - 1 && currentGamer.color === 'black'))
                 && cell.item && cell.item.color !== currentGamer.color
@@ -130,30 +126,43 @@ const findAllMandatoryMoves = (b, cs, currentGamer) => {
                 && !cell.item
             ) movedCell = cell;
         });
-        if (movedCell && deletedItemCell && deletedItem) moves.push({
-            deletedItem,
-            deletedItemCell,
-            movedCell
-        });
-        if (movedCell) moves = [...moves, ...findAllMoves(board, movedCell)];
-
-        return moves;
+        if (movedCell && deletedItemCell && deletedItem) {
+            routes[route].moves.push({deletedItem, deletedItemCell, movedCell});
+            findAllMoves(board, movedCell, routes, route);
+            isRouteEnd = true;
+        } else isRouteEnd = false;
+        return isRouteEnd;
     }
 
-    const findAllMoves = (board, cell) => {
-        let moves = [];
-        moves = [...moves, movesFront(board, cell)];
-        moves = [...moves, movesRight(board, cell)];
-        moves = [...moves, movesLeft(board, cell)];
-        return moves;
+    const findAllMoves = (board, cell, routes, route) => {
+        let isRouteEnd = movesFront(board, cell, routes, route);
+        if (isRouteEnd) {
+            const lastRoutes = route;
+            route = nanoid();
+            routes[route] = { moves: [...routes[lastRoutes].moves] };
+            isRouteEnd = movesRight(board, cell, routes, route);
+        } else isRouteEnd = movesRight(board, cell, routes, route);
+        if (isRouteEnd) {
+            const lastRoutes = route;
+            route = nanoid();
+            routes[route] = { moves: [...routes[lastRoutes].moves] };
+            isRouteEnd = movesLeft(board, cell, routes, route);
+        } else isRouteEnd = movesRight(board, cell, routes, route);
+
     }
 
     // Gelen tüm taşlar için zorunlu hareketleri araştıralım
+    const routes = { };
+
     cells.forEach(cell => {
-        let newMoves = findAllMoves(board, cell);
-        if (newMoves.length > 0) allMoves = [...allMoves, newMoves];
+        let route = nanoid();
+        routes[route] = { moves: [] };
+        findAllMoves(board, cell, routes, route);
     });
-    console.log(allMoves)
+    for(let key in routes) {
+        if(routes[key].moves.length === 0) delete routes[key];
+    }
+    console.log(routes);
     return allMoves;
 }
 
