@@ -1,5 +1,9 @@
 import { createSlice } from "@reduxjs/toolkit";
+<<<<<<< HEAD
 import { createBoard, gameFindWhiteMoves, gameFindMandatoryMoves, gameFindBlackMoves } from "./game";
+=======
+import { createBoard, gameFindWhiteMoves, gameFindBlackMoves, findMandatoryMoves } from "./game";
+>>>>>>> e09b35b1d40283058f8e6cb86a3a3a4be1ea352d
 import { nanoid } from "@reduxjs/toolkit";
 
 
@@ -33,10 +37,19 @@ export const gameSlice = createSlice({
             state.selectedItem.isSelected = "selected-item";
         },
         findWhiteMoves: (state, action) => {
+<<<<<<< HEAD
             gameFindWhiteMoves({ board: state.board, selectedCell: state.board[state.selectedItem.cellId] });
         },
         findBlackMoves: (state, action) => {
             gameFindBlackMoves({ board: state.board, selectedCell: state.board[state.selectedItem.cellId] });
+=======
+            const items = gameFindWhiteMoves({board: state.board, selectedCell: state.board[state.selectedItem.cellId]});
+            for(let key in items) state.board[key].navigable = true;
+        },
+        findBlackMoves: (state, action) => {
+            const items = gameFindBlackMoves({board: state.board, selectedCell: state.board[state.selectedItem.cellId]});
+            for(let key in items) state.board[key].navigable = true;
+>>>>>>> e09b35b1d40283058f8e6cb86a3a3a4be1ea352d
         },
         findWhiteDamaMoves: (state, action) => {
             console.log("white with dama")
@@ -56,6 +69,7 @@ export const gameSlice = createSlice({
             state.selectedItem = null;
             state.currentCell = null;
             state.lastCell = null;
+<<<<<<< HEAD
             for (let cell in state.board) state.board[cell].navigable = false;
 
             let nextMoves = [];
@@ -65,6 +79,13 @@ export const gameSlice = createSlice({
                 }
             }
         },
+=======
+            state.currentGamer = state.currentGamer.id === state.gamerOne.id ? state.gamerTwo : state.gamerOne;
+
+            for (let cell in state.board) state.board[cell].navigable = false;
+            findMandatoryMoves(state.board, state.currentGamer);
+        }
+>>>>>>> e09b35b1d40283058f8e6cb86a3a3a4be1ea352d
     }
 });
 
