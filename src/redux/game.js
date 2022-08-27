@@ -29,140 +29,164 @@ export const createBoard = () => {
     return board;
 }
 
-const findAllMandatoryMoves = (b, cs, currentGamer) => {
+const findAllMandatoryMoves = (b, cs, currentGamer, routes) => {
     // b board, c cells 
     // gelen hücrelerde hareket eden taşlar var
-    // İç içe çağırma işlemi yapılarak
-    // taşın her hareketi yakalanmaya çalışılacak
-    // Her hareketten sonra yenilen taş tahtadan
-    // çıkarılacak ve yiyen taş yer değiştirecek
-    // Sonrasında bu işlem bir dizi içerisinde
-    // nesne olarak tutulacak
 
     const board = [...b];
     const cells = [...cs];
     let allMoves = [];
 
-    const movesFront = (b, c, routes, route) => {
-        // Öne giden hareketleri bul
-        const board = [...b];
-        let deletedItem = null;
-        let deletedItemCell = null;
-        let movedCell = null;
-        let isRouteEnd = false;
-        board.forEach(cell => {
-            if (cell.y === c.y) return;
-            if ( // silinen taşı bulalım
-                ((cell.y === c.y + 1 && currentGamer.color === 'white') || (cell.y === c.y - 1 && currentGamer.color === 'black'))
-                && cell.item && cell.item.com !== currentGamer.color
-                && cell.x === c.x
-            ) {
-                deletedItemCell = cell;
-                deletedItem = cell && cell.item;
-            } else if ( // haret edilecek hücreyi bulalım
-                ((cell.y === c.y + 2 && currentGamer.color === 'white') || (cell.y === c.y - 2 && currentGamer.color === 'black'))
-                && cell.x === c.x
-                && !cell.item
-            ) movedCell = cell;
-        });
-        if (movedCell && deletedItemCell && deletedItem) {
-            routes[route].moves.push({deletedItem, deletedItemCell, movedCell});
-            findAllMoves(board, movedCell, routes, route);
-            isRouteEnd = true;
-        } else isRouteEnd = false;
-        return isRouteEnd;
+
+
+    const findAllMoves = (b, c, routes) => {
+        let lastMoves = [];
+        let sayac = 10;
+        let board = b;
+
+        while (sayac) {
+            // Sonsuz döngü oluşturuyoruz.
+            // Eğer yapılacak hareket kalmazsa 
+            // Döngü kırılacak
+
+            // Önde yenilecek taş var mı?
+            board = b;
+            let isMove = false;
+            let deletedItem = null;
+            let deletedItemCell = null;
+            let cellReached = null;
+            let startingCell = c;
+            let cellFirst = c;
+            let routeId = null;
+            let route = null;
+            let routeMoves = null;
+            let cellItem = null;
+            let firstMove = null;
+            let lastOneMove = null;
+            let lastTwoMove = null;
+            console.log(lastMoves)
+            if (lastMoves.length) {
+                route = routes[lastMoves[0].routeId];
+                routeMoves = route.moves.map(item => item.deletedItemCell.id);
+                cellReached = route.moves[0].cellReached;
+                cellItem = route.moves[0].deletedItem;
+                firstMove = lastMoves.shift();
+                cellFirst = firstMove.cellReached;
+                routeId = firstMove.routeId;
+                board = board.map(item => {
+                    if (routeMoves.includes(item.id)) delete item.item;
+                    if (item.id === cellReached) item.item = cellItem;
+                    return item;
+                });
+            }
+            board.forEach(cell => {
+                if (isMove) return; // Eğer hareket yapıldı ise geri dön
+                if ( // silinen taşı bulalım
+                    ((cell.y === cellFirst.y + 1 && currentGamer.color === 'white') || (cell.y === cellFirst.y - 1 && currentGamer.color === 'black'))
+                    && cell.item && cell.item.color !== currentGamer.color
+                    && cell.x === cellFirst.x
+                ) {
+                    startingCell = cellFirst;
+                    deletedItemCell = cell;
+                    deletedItem = cell.item;
+
+                } else if ( // haret edilecek hücreyi bulalım
+                    ((cell.y === cellFirst.y + 2 && currentGamer.color === 'white') || (cell.y === cellFirst.y - 2 && currentGamer.color === 'black'))
+                    && cell.x === cellFirst.x
+                    && !cell.item
+                ) {
+                    cellReached = cell;
+                }
+                if (cellReached !== null && deletedItem !== null) isMove = true;
+            });
+            // Önde hareket var mı?
+            let isFrontMove = false;
+            if (isMove) {
+                let move = {
+                    startingCell,
+                    deletedItemCell,
+                    cellReached,
+                    deletedItem,
+                }
+                if (routeId) {
+                    routes[routeId].moves.push(move);
+                } else {
+                    routeId = nanoid();
+                    routes[routeId] = {};
+                    routes[routeId].moves = [move];
+                }
+                isFrontMove = true;
+                lastMoves.push({ startingCell, deletedItemCell, cellReached, deletedItem, routeId });
+            }
+            c = null;
+            cellReached = null;
+            deletedItem = null;
+            deletedItemCell = null;
+            isMove = false;
+
+            /* Sola Hareket Var mı? */
+
+            board.forEach(cell => {
+                if (isMove) return; // Eğer hareket yapıldı ise geri dön
+                if ( // silinen taşı bulalım
+                    ((cell.x === cellFirst.x - 1 && currentGamer.color === 'white') || (cell.x === cellFirst.x + 1 && currentGamer.color === 'black'))
+                    && cell.item && cell.item.color !== currentGamer.color
+                    && cell.y === cellFirst.y
+                ) {
+                    startingCell = cellFirst;
+                    deletedItemCell = cell;
+                    deletedItem = cell.item;
+
+                } else if ( // haret edilecek hücreyi bulalım
+                    ((cell.x === cellFirst.x - 2 && currentGamer.color === 'white') || (cell.x === cellFirst.x + 2 && currentGamer.color === 'black'))
+                    && cell.y === cellFirst.y
+                    && !cell.item
+                ) {
+                    cellReached = cell;
+                }
+                if (cellReached !== null && deletedItem !== null) isMove = true;
+            });
+            // Solda hareket var mı?
+            let isLeftMove = false;
+            if (isMove) {
+                let move = {
+                    startingCell,
+                    deletedItemCell,
+                    cellReached,
+                    deletedItem,
+                }
+                if (!isFrontMove) {
+                    routes[routeId].moves.push(move);
+                } else {
+                    let moves = [...routes[routeId].moves];
+                    moves.length -= 1; // Öne doğru son hareketi silelim
+                    routeId = nanoid();
+                    routes[routeId] = {};
+                    routes[routeId].moves = [...moves, move];
+                }
+
+                lastMoves.push({ startingCell, deletedItemCell, cellReached, deletedItem, routeId });
+                isLeftMove = true;
+            }
+            c = null;
+            cellReached = null;
+            deletedItem = null;
+            deletedItemCell = null;
+            startingCell = null;
+            isMove = false;
+
+            
+            sayac -= 1 // hatalı durumlarda gereksiz döngüyü sonladıracak
+            // öne, sola ve sağa hareketlerden sonra bu satır çalışmalı
+            if (!lastMoves.length) break; // hareket kalmadı
+        }
     }
-
-    const movesLeft = (b, c, routes, route) => {
-        // Sala giden hareketleri bul
-        const board = [...b];
-        let isRouteEnd = false;
-        let deletedItem = null;
-        let deletedItemCell = null;
-        let movedCell = null;
-        board.forEach(cell => {
-            if (cell.y === c.y) return;
-            if ( // silinen taşı bulalım
-                ((cell.x === c.x - 1 && currentGamer.color === 'white') || (cell.x === c.x + 1 && currentGamer.color === 'black'))
-                && cell.item && cell.item.color !== currentGamer.color
-                && cell.y === c.y
-            ) {
-                deletedItemCell = cell;
-                deletedItem = cell && cell.item;
-            } else if ( // haret edilecek hücreyi bulalım
-                ((cell.x === c.x - 2 && currentGamer.color === 'white') || (cell.x === c.x + 2 && currentGamer.color === 'black'))
-                && cell.y === c.y
-                && !cell.item
-            ) movedCell = cell;
-        });
-        if (movedCell && deletedItemCell && deletedItem) {
-            routes[route].moves.push({deletedItem, deletedItemCell, movedCell});
-            findAllMoves(board, movedCell, routes, route);
-            isRouteEnd = true;
-        } else isRouteEnd = false;
-        return isRouteEnd;
-    }
-
-    const movesRight = (b, c, routes, route) => {
-        // Sağa giden hareketleri bul
-        const board = [...b];
-        let deletedItem = null;
-        let deletedItemCell = null;
-        let movedCell = null;
-        let isRouteEnd = false;
-        board.forEach(cell => {
-
-            if (cell.y !== c.y) return;
-            if ( // silinen taşı bulalım
-                ((cell.x === c.x + 1 && currentGamer.color === 'white') || (cell.x === c.x - 1 && currentGamer.color === 'black'))
-                && cell.item && cell.item.color !== currentGamer.color
-                && cell.y === c.y
-            ) {
-                deletedItemCell = cell;
-                deletedItem = cell && cell.item;
-            } else if ( // haret edilecek hücreyi bulalım
-                ((cell.x === c.x + 2 && currentGamer.color === 'white') || (cell.x === c.x - 2 && currentGamer.color === 'black'))
-                && cell.y === c.y
-                && !cell.item
-            ) movedCell = cell;
-        });
-        if (movedCell && deletedItemCell && deletedItem) {
-            routes[route].moves.push({deletedItem, deletedItemCell, movedCell});
-            findAllMoves(board, movedCell, routes, route);
-            isRouteEnd = true;
-        } else isRouteEnd = false;
-        return isRouteEnd;
-    }
-
-    const findAllMoves = (board, cell, routes, route) => {
-        let isRouteEnd = movesFront(board, cell, routes, route);
-        if (isRouteEnd) {
-            const lastRoutes = route;
-            route = nanoid();
-            routes[route] = { moves: [...routes[lastRoutes].moves] };
-            isRouteEnd = movesRight(board, cell, routes, route);
-        } else isRouteEnd = movesRight(board, cell, routes, route);
-        if (isRouteEnd) {
-            const lastRoutes = route;
-            route = nanoid();
-            routes[route] = { moves: [...routes[lastRoutes].moves] };
-            isRouteEnd = movesLeft(board, cell, routes, route);
-        } else isRouteEnd = movesRight(board, cell, routes, route);
-
-    }
-
     // Gelen tüm taşlar için zorunlu hareketleri araştıralım
-    const routes = { };
-
     cells.forEach(cell => {
-        let route = nanoid();
-        routes[route] = { moves: [] };
-        findAllMoves(board, cell, routes, route);
+        findAllMoves(board, cell, routes);
     });
-    for(let key in routes) {
-        if(routes[key].moves.length === 0) delete routes[key];
-    }
-    console.log(routes);
+
+    console.log("routes ", routes)
     return allMoves;
 }
 
@@ -214,8 +238,8 @@ export const findMandatoryMoves = (b, cg) => {
     });
 
     // Taşa basan taşlar bulundu. Şimdi bu taşların hareketleni bulalım
-    console.log(cells)
-    return findAllMandatoryMoves(board, cells, currentGamer);
+    let routes = {};
+    return findAllMandatoryMoves(board, cells, currentGamer, routes);
 
 }
 
@@ -271,3 +295,94 @@ export const gameFindBlackMoves = (data) => {
         }
     }
 }
+
+// const movesFront = (b, c, routes, route) => {
+//     // Öne giden hareketleri bul
+//     const board = [...b];
+//     let deletedItem = null;
+//     let deletedItemCell = null;
+//     let movedCell = null;
+//     let isRouteEnd = false;
+//     board.forEach(cell => {
+//         if (cell.y === c.y) return;
+//         if ( // silinen taşı bulalım
+//             ((cell.y === c.y + 1 && currentGamer.color === 'white') || (cell.y === c.y - 1 && currentGamer.color === 'black'))
+//             && cell.item && cell.item.com !== currentGamer.color
+//             && cell.x === c.x
+//         ) {
+//             deletedItemCell = cell;
+//             deletedItem = cell && cell.item;
+//         } else if ( // haret edilecek hücreyi bulalım
+//             ((cell.y === c.y + 2 && currentGamer.color === 'white') || (cell.y === c.y - 2 && currentGamer.color === 'black'))
+//             && cell.x === c.x
+//             && !cell.item
+//         ) movedCell = cell;
+//     });
+//     if (movedCell && deletedItemCell && deletedItem) {
+//         routes[route].moves.push({ deletedItem, deletedItemCell, movedCell });
+//         findAllMoves(board, movedCell, routes, route);
+//         isRouteEnd = true;
+//     } else isRouteEnd = false;
+//     return isRouteEnd;
+// }
+
+// const movesLeft = (b, c, routes, route) => {
+//     // Sala giden hareketleri bul
+//     const board = [...b];
+//     let isRouteEnd = false;
+//     let deletedItem = null;
+//     let deletedItemCell = null;
+//     let movedCell = null;
+//     board.forEach(cell => {
+//         if (cell.y === c.y) return;
+//         if ( // silinen taşı bulalım
+//             ((cell.x === c.x - 1 && currentGamer.color === 'white') || (cell.x === c.x + 1 && currentGamer.color === 'black'))
+//             && cell.item && cell.item.color !== currentGamer.color
+//             && cell.y === c.y
+//         ) {
+//             deletedItemCell = cell;
+//             deletedItem = cell && cell.item;
+//         } else if ( // haret edilecek hücreyi bulalım
+//             ((cell.x === c.x - 2 && currentGamer.color === 'white') || (cell.x === c.x + 2 && currentGamer.color === 'black'))
+//             && cell.y === c.y
+//             && !cell.item
+//         ) movedCell = cell;
+//     });
+//     if (movedCell && deletedItemCell && deletedItem) {
+//         routes[route].moves.push({ deletedItem, deletedItemCell, movedCell });
+//         findAllMoves(board, movedCell, routes, route);
+//         isRouteEnd = true;
+//     } else isRouteEnd = false;
+//     return isRouteEnd;
+// }
+
+// const movesRight = (b, c, routes, route) => {
+//     // Sağa giden hareketleri bul
+//     const board = [...b];
+//     let deletedItem = null;
+//     let deletedItemCell = null;
+//     let movedCell = null;
+//     let isRouteEnd = false;
+//     board.forEach(cell => {
+
+//         if (cell.y !== c.y) return;
+//         if ( // silinen taşı bulalım
+//             ((cell.x === c.x + 1 && currentGamer.color === 'white') || (cell.x === c.x - 1 && currentGamer.color === 'black'))
+//             && cell.item && cell.item.color !== currentGamer.color
+//             && cell.y === c.y
+//         ) {
+//             deletedItemCell = cell;
+//             deletedItem = cell && cell.item;
+//         } else if ( // haret edilecek hücreyi bulalım
+//             ((cell.x === c.x + 2 && currentGamer.color === 'white') || (cell.x === c.x - 2 && currentGamer.color === 'black'))
+//             && cell.y === c.y
+//             && !cell.item
+//         ) movedCell = cell;
+//     });
+//     if (movedCell && deletedItemCell && deletedItem) {
+//         routes[route].moves.push({ deletedItem, deletedItemCell, movedCell });
+//         findAllMoves(board, movedCell, routes, route);
+//         isRouteEnd = true;
+//     } else isRouteEnd = false;
+//     return isRouteEnd;
+// }
