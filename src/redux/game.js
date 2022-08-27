@@ -214,6 +214,7 @@ export const findMandatoryMoves = (b, cg) => {
     });
 
     // Taşa basan taşlar bulundu. Şimdi bu taşların hareketleni bulalım
+    console.log(cells)
     return findAllMandatoryMoves(board, cells, currentGamer);
 
 }
