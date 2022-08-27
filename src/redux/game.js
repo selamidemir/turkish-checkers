@@ -62,9 +62,7 @@ const findAllMandatoryMoves = (b, cs, currentGamer, routes) => {
             let routeMoves = null;
             let cellItem = null;
             let firstMove = null;
-            let lastOneMove = null;
-            let lastTwoMove = null;
-            console.log(lastMoves)
+
             if (lastMoves.length) {
                 route = routes[lastMoves[0].routeId];
                 routeMoves = route.moves.map(item => item.deletedItemCell.id);
@@ -111,6 +109,7 @@ const findAllMandatoryMoves = (b, cs, currentGamer, routes) => {
                 if (routeId) {
                     routes[routeId].moves.push(move);
                 } else {
+                    // ilk route açılıyor
                     routeId = nanoid();
                     routes[routeId] = {};
                     routes[routeId].moves = [move];
@@ -146,23 +145,27 @@ const findAllMandatoryMoves = (b, cs, currentGamer, routes) => {
                 }
                 if (cellReached !== null && deletedItem !== null) isMove = true;
             });
-            // Solda hareket var mı?
+            // Sola hareket var mı?
             let isLeftMove = false;
             if (isMove) {
+                console.log("sola hareket")
                 let move = {
                     startingCell,
                     deletedItemCell,
                     cellReached,
                     deletedItem,
                 }
-                if (!isFrontMove) {
-                    routes[routeId].moves.push(move);
-                } else {
+                if (isFrontMove) {
                     let moves = [...routes[routeId].moves];
                     moves.length -= 1; // Öne doğru son hareketi silelim
                     routeId = nanoid();
                     routes[routeId] = {};
                     routes[routeId].moves = [...moves, move];
+                } else {
+                    // ilk route açılıyor
+                    routeId = nanoid();
+                    routes[routeId] = {};
+                    routes[routeId].moves = [move];;
                 }
 
                 lastMoves.push({ startingCell, deletedItemCell, cellReached, deletedItem, routeId });
@@ -175,7 +178,77 @@ const findAllMandatoryMoves = (b, cs, currentGamer, routes) => {
             startingCell = null;
             isMove = false;
 
-            
+            /* Sağa Hareket Var mı? */
+
+            board.forEach(cell => {
+                if (isMove) return; // Eğer hareket yapıldı ise geri dön
+                if ( // silinen taşı bulalım
+                    ((cell.x === cellFirst.x + 1 && currentGamer.color === 'white') || (cell.x === cellFirst.x - 1 && currentGamer.color === 'black'))
+                    && cell.item && cell.item.color !== currentGamer.color
+                    && cell.y === cellFirst.y
+                ) {
+                    startingCell = cellFirst;
+                    deletedItemCell = cell;
+                    deletedItem = cell.item;
+                    console.log("sağ alır")
+                } else if ( // haret edilecek hücreyi bulalım
+                    ((cell.x === cellFirst.x + 2 && currentGamer.color === 'white') || (cell.x === cellFirst.x - 2 && currentGamer.color === 'black'))
+                    && cell.y === cellFirst.y
+                    && !cell.item
+                ) {
+                    cellReached = cell;
+                }
+                if (cellReached !== null && deletedItem !== null) isMove = true;
+            });
+            // Sağa hareket var mı?
+            // let isRightMove = false; 
+            if (isMove) {
+                console.log("sağa hareket")
+                let move = {
+                    startingCell,
+                    deletedItemCell,
+                    cellReached,
+                    deletedItem,
+                }
+                let moves = null;
+                if (isFrontMove && !isLeftMove) {
+                    moves = [...routes[routeId].moves];
+                    moves.length -= 1;
+                    routeId = nanoid();
+                    routes[routeId] = {};
+                    routes[routeId].moves = [...moves, move];
+                    routes[routeId].moves.push(move);
+                } else if (!isFrontMove && isLeftMove) {
+                    moves = [...routes[routeId].moves];
+                    moves.length -= 1;
+                    routeId = nanoid();
+                    routes[routeId] = {};
+                    routes[routeId].moves = [...moves, move];
+                    routes[routeId].moves.push(move);
+                } else if (isFrontMove && isLeftMove) {
+                    moves = [...routes[routeId].moves];
+                    moves.length -= 2;
+                    routeId = nanoid();
+                    routes[routeId] = {};
+                    routes[routeId].moves = [...moves, move];
+                    routes[routeId].moves.push(move);
+                } else {
+                    routeId = nanoid();
+                    routes[routeId] = {};
+                    routes[routeId].moves = [move];
+                }
+
+                lastMoves.push({ startingCell, deletedItemCell, cellReached, deletedItem, routeId });
+                // isRightMove = true;
+            }
+            c = null;
+            cellReached = null;
+            deletedItem = null;
+            deletedItemCell = null;
+            startingCell = null;
+            isMove = false;
+            routeId = null;
+
             sayac -= 1 // hatalı durumlarda gereksiz döngüyü sonladıracak
             // öne, sola ve sağa hareketlerden sonra bu satır çalışmalı
             if (!lastMoves.length) break; // hareket kalmadı
