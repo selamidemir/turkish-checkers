@@ -10,12 +10,16 @@ export const gameSlice = createSlice({
         selectedItem: null,
         lastCell: null,
         currentCell: null,
-        gamerOne: { id: nanoid(), name: 'Gamer One', color: 'white'},
-        gamerTwo: { id: nanoid(), name: 'Gamer Two', color: 'black'},
+        gamerOne: { id: nanoid(), name: 'White', color: 'white'},
+        gamerTwo: { id: nanoid(), name: 'Black', color: 'black'},
         currentGamer : null,
     },
     reducers: {
         initGame: (state, action) => {
+            state.board = createBoard();
+            // state.currentGamer = state.gamerOne;
+        },
+        resetGame: (state, action) => {
             state.board = createBoard();
             state.currentGamer = state.gamerOne;
         },
@@ -67,6 +71,7 @@ export const gameSlice = createSlice({
 
 export const selectBoard = state => state.game.board;
 export const selectSelectedItem = state => state.game.selectedItem;
+export const selectCurrentGamer = state => state.game.currentGamer;
 
-export const { initGame, setSelectedItem, moveItem, findWhiteMoves, findWhiteDamaMoves, findBlackMoves, findBlackDamaMoves } = gameSlice.actions;
+export const { initGame, setSelectedItem, moveItem, findWhiteMoves, findWhiteDamaMoves, findBlackMoves, findBlackDamaMoves, resetGame } = gameSlice.actions;
 export default gameSlice.reducer;

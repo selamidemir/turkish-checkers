@@ -29,7 +29,6 @@ function Board() {
             {
                 boardList && boardList.map((cell, index) => <Cell key={index} cell={cell}></Cell>)
             }
-
         </div>
     );
 }
