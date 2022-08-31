@@ -12,7 +12,12 @@ function Cell({cell}) {
         dispatch(moveItem(cell));
     }
   return (
-    <div data-id={cell.id} onClick={e => handleClick(e)} className={`cell ${cell.color} ${cell.navigable ? 'navigable' : ''} ${cell.willDelete ? ' will-item-delete' : ' '} `}> {cell.item && <Item item={cell.item} />}</div>
+    <div data-id={cell.id} onClick={e => handleClick(e)} 
+      className={`cell ${cell.color} ${cell.navigable ? 'navigable' : ''} 
+      ${cell.reached ? ' reached-cell' : ' '}
+      ${cell.startingCell ? ' starting-cell' : ' '} `} 
+      
+      > {cell.item && <Item item={cell.item} />}</div>
   );
 }
 

@@ -152,6 +152,14 @@ body {
   margin-right: 15px;
 }
 
+.starting-cell {
+  background-color: aquamarine;
+}
+
+.reached-cell {
+  background-color:chocolate;
+}
+
 .reset-game {
   cursor: pointer;
 }
