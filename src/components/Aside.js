@@ -2,7 +2,7 @@ import React from 'react';
 
 function Aside() {
   return (
-    <div className='aside'>Aside</div>
+    <div className='aside'>&nbsp;</div>
   );
 }
 

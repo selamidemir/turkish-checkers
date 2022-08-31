@@ -9,7 +9,9 @@ function Item({ item }) {
         dispatch(setSelectedItem(item));
     }
     return (
-        <div onClick={e => handleClick(e)} className={`item ${item.color} ${item.isSelected}`}></div>
+        <div onClick={e => handleClick(e)} className={`item ${item.color} ${item.isSelected}`}>
+            { item.dama && <div className={`item-dama ${item.color === 'white' ? 'white' : 'black'}`}></div> }
+            </div>
     );
 }
 

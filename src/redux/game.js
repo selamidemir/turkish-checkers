@@ -18,9 +18,10 @@ export const createBoard = () => {
             if (item) item.cellId = id;
             board[id] = {
                 id: id,
-                y: j, //x_line[i-1],
+                y: j,
                 x: i,
                 navigable: false,
+                moveable: false,
                 color: color,
                 item: item,
             };
@@ -196,7 +197,7 @@ const findLeftMove = (data) => {
 
 // }
 
-const findAllMoves = (b, c, cg) => {
+const findAllMoves = (b, c, cg, bb) => {
     let board = [...b];
     let cell = { ...c };
     let currentGamer = { ...cg };
@@ -212,20 +213,32 @@ const findAllMoves = (b, c, cg) => {
         // Sonsuz döngü oluşturuyoruz.
         // Eğer yapılacak hareket kalmazsa 
         // Döngü kırılacak
-        if (lastMoves.length) {
+        if (lastMoves.length > 0) {
             route = routes[lastMoves[0].routeId];
             let routeMoves = route.moves.map(item => item.deletedItemCell.id);
             let cellReached = route.moves[0].cellReached;
             let startingCell = route.moves[0].startingCell;
-
-            firstMove = lastMoves.pop();
-            routeId = firstMove.routeId;
+            console.log("route : ", route)
             board = board.map(item => {
-                if (routeMoves.includes(item.id)) delete item.item;
-                if (item.id === cellReached.id) item.item = startingCell.item;
+                bb[item.id].willDelete = false;   
+                bb[item.id].willMove = false;   
+                if (routeMoves.includes(item.id)) {
+                    delete item.item;
+                    // bb[item.id].willDelete = true;
+                }
+                if (item.id === cellReached.id) {
+                    item.item = startingCell.item;
+                    // bb[item.id].willMove = true;
+                }
+                if (item.id === startingCell.id) {
+                    delete item.item;
+                    // bb[item.id].willMove = true;
+                }
                 return item;
             });
             cell = cellReached;
+            firstMove = lastMoves.pop();
+            routeId = firstMove.routeId;
         }
         let data = {
             board,
@@ -237,6 +250,7 @@ const findAllMoves = (b, c, cg) => {
         if (newMove.isMove) {
             // Bir taş yendi
             newMove.move.sayac = sayac;
+            console.log("new move : ", newMove.move)
             if (routeId) {
                 routes[routeId].moves.push(newMove.move);
                 lastMoves.push({ ...newMove.move, routeId, direction: 'front' });
@@ -249,36 +263,34 @@ const findAllMoves = (b, c, cg) => {
             isFrontMove = true;
         }
 
-        newMove = findLeftMove(data);
-        if (newMove.isMove) {
-            newMove.move.sayac = sayac;
-            if (routeId) {
-                if (isFrontMove) {
-                    let newRouteId = nanoid();
-                    let moves = [...routes[routeId].moves];
-                    moves.length -= 1;
-                    routes[newRouteId] = { moves: [...moves, newMove.move] };
-                    lastMoves.push({ ...newMove.move, routeId: newRouteId, direction: 'left' });
-                } else {
-                    routes[routeId].moves.push(newMove.move);
-                    lastMoves.push({ ...newMove.move, routeId, direction: 'left' });
-                }   
-            } else {
-                let newRouteId = nanoid();
-                routes[newRouteId] = { moves: [newMove.move] };
-                lastMoves.push({ ...newMove.move, routeId: newRouteId, direction: 'left' });
-            }
-        }
-
-        console.log(routes)
+        // newMove = findLeftMove(data);
+        // if (newMove.isMove) {
+        //     newMove.move.sayac = sayac;
+        //     if (routeId) {
+        //         if (isFrontMove) {
+        //             let newRouteId = nanoid();
+        //             let moves = [...routes[routeId].moves];
+        //             moves.length -= 1;
+        //             routes[newRouteId] = { moves: [...moves, newMove.move] };
+        //             lastMoves.push({ ...newMove.move, routeId: newRouteId, direction: 'left' });
+        //         } else {
+        //             routes[routeId].moves.push(newMove.move);
+        //             lastMoves.push({ ...newMove.move, routeId, direction: 'left' });
+        //         }   
+        //     } else {
+        //         let newRouteId = nanoid();
+        //         routes[newRouteId] = { moves: [newMove.move] };
+        //         lastMoves.push({ ...newMove.move, routeId: newRouteId, direction: 'left' });
+        //     }
+        // }
         sayac += 1 // hatalı durumlarda gereksiz döngüyü sonladıracak
         // öne, sola ve sağa hareketlerden sonra bu satır çalışmalı
-        if (!lastMoves.length) break; // hareket kalmadı
+        if (lastMoves.length <= 0) break; // hareket kalmadı
     }
     return routes;
 }
 
-const findAllMandatoryMoves = (b, cs, currentGamer) => {
+const findAllMandatoryMoves = (b, cs, currentGamer, bb) => {
     // b board, c cells 
     // gelen hücrelerde hareket eden taşlar var
 
@@ -290,7 +302,7 @@ const findAllMandatoryMoves = (b, cs, currentGamer) => {
 
     // Gelen tüm taşlar için zorunlu hareketleri araştıralım
     cells.forEach(cell => {
-        let newRoutes = findAllMoves(board, cell, currentGamer);
+        let newRoutes = findAllMoves(board, cell, currentGamer, bb);
         routes = { ...routes, ...newRoutes };
     });
 
@@ -346,7 +358,7 @@ export const findMandatoryMoves = (b, cg) => {
 
     // Taşa basan taşlar bulundu. Şimdi bu taşların hareketleni bulalım
 
-    const routes = findAllMandatoryMoves(board, cells, currentGamer);
+    const routes = findAllMandatoryMoves(board, cells, currentGamer, b);
     return routes;
 }
 

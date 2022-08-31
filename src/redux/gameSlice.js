@@ -61,15 +61,6 @@ export const gameSlice = createSlice({
 
             for (let cell in state.board) state.board[cell].navigable = false;
             findMandatoryMoves(state.board, state.currentGamer);
-            // const allMoves = findMandatoryMoves(state.board, state.currentGamer);
-            // for(let cell in state.board) {
-            //     allMoves.forEach(items => {
-            //         for(let key in items) {
-            //             if(items[key].length >= 0) continue;
-            //             if(items[key].deletedItemCell.id === state.board[cell].id) state.board[cell].navigable = true;
-            //         }
-            //     });
-            // }
         }
     }
 });
