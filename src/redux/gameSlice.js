@@ -10,18 +10,24 @@ export const gameSlice = createSlice({
         selectedItem: null,
         lastCell: null,
         currentCell: null,
-        gamerOne: { id: nanoid(), name: 'White', color: 'white'},
-        gamerTwo: { id: nanoid(), name: 'Black', color: 'black'},
-        currentGamer : null,
+        gamerOne: { id: nanoid(), name: 'White', color: 'white' },
+        gamerTwo: { id: nanoid(), name: 'Black', color: 'black' },
+        currentGamer: null,
         isForcedMove: false,
     },
     reducers: {
         initGame: (state, action) => {
             state.board = createBoard();
             state.currentGamer = state.gamerOne;
+            state.isForcedMove = false;
+            state.selectedItem = null;
+            state.lastCell = null;
         },
         resetGame: (state, action) => {
             state.board = createBoard();
+            state.isForcedMove = false;
+            state.selectedItem = null;
+            state.lastCell = null;
             state.currentGamer = state.gamerOne;
         },
         setSelectedItem: (state, action) => {
@@ -32,20 +38,20 @@ export const gameSlice = createSlice({
                 state.selectedItem = null;
                 return;
             }
-            if(state.currentGamer.color !== state.board[action.payload.cellId].item.color) return;
+            if (state.currentGamer.color !== state.board[action.payload.cellId].item.color) return;
             state.lastCell = state.board[action.payload.cellId];
             state.selectedItem = state.board[action.payload.cellId].item;
             state.selectedItem.isSelected = "selected-item";
         },
         findWhiteMoves: (state, action) => {
-            if(state.isForcedMove) return;
-            const items = gameFindWhiteMoves({board: state.board, selectedCell: state.board[state.selectedItem.cellId]});
-            for(let key in items) state.board[key].navigable = state.isForcedMove ? false : true;
+            if (state.isForcedMove) return;
+            const items = gameFindWhiteMoves({ board: state.board, selectedCell: state.board[state.selectedItem.cellId] });
+            for (let key in items) state.board[key].navigable = state.isForcedMove ? false : true;
         },
         findBlackMoves: (state, action) => {
-            if(state.isForcedMove) return;
-            const items = gameFindBlackMoves({board: state.board, selectedCell: state.board[state.selectedItem.cellId]});
-            for(let key in items) state.board[key].navigable = state.isForcedMove ? false : true;
+            if (state.isForcedMove) return;
+            const items = gameFindBlackMoves({ board: state.board, selectedCell: state.board[state.selectedItem.cellId] });
+            for (let key in items) state.board[key].navigable = state.isForcedMove ? false : true;
         },
         findWhiteDamaMoves: (state, action) => {
             console.log("white with dama")
@@ -54,39 +60,53 @@ export const gameSlice = createSlice({
             console.log("black with dama")
         },
         moveItem: (state, action) => {
-            if (!state.lastCell) return; 
+            if (!state.lastCell) return;
             let isMove = false;
             let itemDeleted = false;
             state.currentCell = state.board[action.payload.id];
-            if(!state.currentCell.navigable) return; // Buraya hareket yok
+            if (!state.currentCell.navigable) return; // Buraya hareket yok
             state.board[state.lastCell.id].item = null;
             state.board[action.payload.id].item = state.selectedItem;
             state.board[action.payload.id].item.isSelected = '';
             state.board[action.payload.id].item.cellId = action.payload.id;
-            if((state.selectedItem.y === 8 && state.selectedItem.color === 'white') || (state.selectedItem.y === 1 && state.selectedItem.color === 'black')) console.log("yeni dama çıktı")
+            if ((state.selectedItem.y === 8 && state.selectedItem.color === 'white') || (state.selectedItem.y === 1 && state.selectedItem.color === 'black')) console.log("yeni dama çıktı")
             console.log(state.selectedItem.x, state.selectedItem.y)
             state.selectedItem = null;
             state.currentCell = null;
             state.lastCell = null;
+            // Eğer bir hareket varsa oyuncu değişmiştir.
+            // Bu nedenle oyuncuyu önceden değiştirelim.
+            // Sonra gerekirse bu hareketi geri alacağız
             state.currentGamer = state.currentGamer.id === state.gamerOne.id ? state.gamerTwo : state.gamerOne;
+
             for (let cell in state.board) {
                 state.board[cell].navigable = false;
                 // state.board[cell].reached = false;
                 state.board[cell].startingCell = false;
                 state.isForcedMove = false;
-                if(state.board[cell].item && state.board[cell].item.willDelete) {
+                if (state.board[cell].item && state.board[cell].item.willDelete) {
                     delete state.board[cell].item;
                     itemDeleted = true;
-                    state.currentGamer = state.currentGamer.id === state.gamerOne.id ? state.gamerTwo : state.gamerOne;
                 }
 
             }
+            // Eğer alınan taş varsa varsayılan olarak güncell oyuncu
+            // yukarıda değiştiği için tekrar geri çevir ve 
+            // taş alan oyuncuya geri dönelim
+            if (itemDeleted) state.currentGamer = state.currentGamer.id === state.gamerOne.id ? state.gamerTwo : state.gamerOne;
             isMove = findMandatoryMoves(state.board, state.currentGamer);
-            if(isMove) state.isForcedMove = true;
-            else if(!isMove && itemDeleted) {
-                itemDeleted = false;
+
+            // Eğer alınan taş var ve yeni hareket yoksa
+            // güncel oyuncuyu değiştirerek onun hareketi var mı 
+            // denetleyerek yolumuza devam edelim
+            if (itemDeleted && !isMove) {
                 state.currentGamer = state.currentGamer.id === state.gamerOne.id ? state.gamerTwo : state.gamerOne;
+                isMove = findMandatoryMoves(state.board, state.currentGamer);
             }
+
+            if (isMove && itemDeleted) state.isForcedMove = true;
+            else if (isMove)  state.isForcedMove = true;
+            else if (!isMove && itemDeleted) state.isForcedMove = false;
         }
     }
 });

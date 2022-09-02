@@ -347,7 +347,8 @@ const markMovedItems = (cellMoves, b) => {
         };
     });
     let isMove = false;
-    if (cellMoves.length) isMove = true;
+    console.log("cellMoves before isMove print : ", cellMoves)
+    if (cellMoves.length && Object.keys(cellMoves[0].routes).length) isMove = true;
     return isMove;
 }
 
@@ -395,6 +396,13 @@ export const findMandatoryMoves = (b, cg) => {
                     && cell3.item
                     && cell3.item.color !== currentGamer.color).length > 0)
                 || cell.item.dama
+            )
+            && ((board.filter(cell1 => cell1.y === cell.y + 2 // beyaz 2 ön
+                && cell1.x === cell.x
+                && !cell1.item))
+                || (board.filter(cell3 => cell3.y === cell.y - 2 // siyah 2 ön
+                    && cell3.x === cell.x
+                    && !cell3.item))
             )
     });
 
