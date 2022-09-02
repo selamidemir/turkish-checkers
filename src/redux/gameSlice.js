@@ -69,8 +69,6 @@ export const gameSlice = createSlice({
             state.board[action.payload.id].item = state.selectedItem;
             state.board[action.payload.id].item.isSelected = '';
             state.board[action.payload.id].item.cellId = action.payload.id;
-            if ((state.selectedItem.y === 8 && state.selectedItem.color === 'white') || (state.selectedItem.y === 1 && state.selectedItem.color === 'black')) console.log("yeni dama çıktı")
-            console.log(state.selectedItem.x, state.selectedItem.y)
             state.selectedItem = null;
             state.currentCell = null;
             state.lastCell = null;
@@ -107,6 +105,13 @@ export const gameSlice = createSlice({
             if (isMove && itemDeleted) state.isForcedMove = true;
             else if (isMove)  state.isForcedMove = true;
             else if (!isMove && itemDeleted) state.isForcedMove = false;
+        },
+        setItemDama: (state, action) => {
+            console.log("Payload : ",  action.payload)
+            const cell = state.board[action.payload.cellId];
+            if((cell.y === 8 && cell.item.color === 'white')
+                || (cell.y === 1 && cell.item.color === 'black'))
+                state.board[action.payload.cellId].item.dama = true;
         }
     }
 });
@@ -116,5 +121,5 @@ export const selectSelectedItem = state => state.game.selectedItem;
 export const selectCurrentGamer = state => state.game.currentGamer;
 export const selectIsForcedMove = state => state.game.isForcedMove;
 
-export const { initGame, setSelectedItem, moveItem, findWhiteMoves, findWhiteDamaMoves, findBlackMoves, findBlackDamaMoves, resetGame } = gameSlice.actions;
+export const { initGame, setSelectedItem, moveItem, findWhiteMoves, findWhiteDamaMoves, findBlackMoves, findBlackDamaMoves, resetGame, setItemDama } = gameSlice.actions;
 export default gameSlice.reducer;

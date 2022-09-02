@@ -17,7 +17,7 @@ function Cell({cell}) {
       ${cell.reached ? ' reached-cell' : ' '}
       ${cell.startingCell ? ' starting-cell' : ' '} `} 
       
-      > {cell.item && <Item item={cell.item} />}</div>
+      > {cell.item && <Item item={cell.item} itemCell={cell} />}</div>
   );
 }
 
