@@ -16,7 +16,6 @@ function Item({ item}) {
     }
 
     useEffect(() => {
-        console.log("tama arama")
         if(item.id && item.cellId) dispatch(setItemDama({itemId: item.id, cellId: item.cellId}));
     }, [item.id, item.cellId, dispatch]);
 

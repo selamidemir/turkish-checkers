@@ -10,8 +10,8 @@ function Board() {
 
     useEffect(() => {
         if(selectedItem === null) return; // Seçili item yok
-        else if(selectedItem.color === 'white' && selectedItem.dama) dispatch(findWhiteDamaMoves())
-        else if(selectedItem.color === 'white' && !selectedItem.dama) dispatch(findWhiteMoves())
+        else if(selectedItem.color === 'white' && selectedItem.dama) dispatch(findWhiteDamaMoves());
+        else if(selectedItem.color === 'white' && !selectedItem.dama) dispatch(findWhiteMoves());
         else if(selectedItem.color === 'black' && selectedItem.dama) dispatch(findBlackDamaMoves());
         else if(selectedItem.color === 'black' && !selectedItem.dama) dispatch(findBlackMoves())
     },[selectedItem, dispatch]);

@@ -1,5 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { createBoard, gameFindWhiteMoves, gameFindBlackMoves, findMandatoryMoves } from "./game";
+import { createBoard, gameFindWhiteMoves, gameFindBlackMoves, findMandatoryMoves, gameFindWhiteDamaMoves, gameFindBlackDamaMoves } from "./game";
 import { nanoid } from "@reduxjs/toolkit";
 
 
@@ -33,7 +33,8 @@ export const gameSlice = createSlice({
         setSelectedItem: (state, action) => {
             if (state.selectedItem) {// Seçili taş var seçimi iptal et
                 state.board[state.selectedItem.cellId].item.isSelected = '';
-                for (let cell in state.board) state.board[cell].navigable = false;
+                // Eğer herhangi bir taşa basılmıyorsa 
+                if(!state.isForcedMove) for (let cell in state.board) state.board[cell].navigable = false;
                 state.lastCell = null;
                 state.selectedItem = null;
                 return;
@@ -54,10 +55,14 @@ export const gameSlice = createSlice({
             for (let key in items) state.board[key].navigable = state.isForcedMove ? false : true;
         },
         findWhiteDamaMoves: (state, action) => {
-            console.log("white with dama")
+            if (state.isForcedMove) return;
+            const items = gameFindWhiteDamaMoves({ board: state.board, selectedCell: state.board[state.selectedItem.cellId] });
+            for (let key in items) state.board[key].navigable = state.isForcedMove ? false : true;
         },
         findBlackDamaMoves: (state, action) => {
-            console.log("black with dama")
+            if (state.isForcedMove) return;
+            const items = gameFindBlackDamaMoves({ board: state.board, selectedCell: state.board[state.selectedItem.cellId] });
+            for (let key in items) state.board[key].navigable = state.isForcedMove ? false : true;
         },
         moveItem: (state, action) => {
             if (!state.lastCell) return;
@@ -107,7 +112,6 @@ export const gameSlice = createSlice({
             else if (!isMove && itemDeleted) state.isForcedMove = false;
         },
         setItemDama: (state, action) => {
-            console.log("Payload : ",  action.payload)
             const cell = state.board[action.payload.cellId];
             if((cell.y === 8 && cell.item.color === 'white')
                 || (cell.y === 1 && cell.item.color === 'black'))
