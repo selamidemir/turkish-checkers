@@ -536,7 +536,6 @@ export const gameFindWhiteMoves = (data) => {
     const board = data.board;
     const selectedCell = board[data.selectedCell.id];
 
-    // const selectedCell = state.board[state.selectedItem.cellId];
     for (let cell in board) {
         // Öndeki kare boş mu? x + 1
         if (((selectedCell.y + 1) === board[cell].y)
