@@ -303,6 +303,251 @@ const findAllMoves = (b, c, cg, bb) => {
     return routes;
 }
 
+const findDamaAllMoves = (b, c, cg, bb) => {
+    let board = [...b];
+    let cell = { ...c };
+    let currentGamer = { ...cg };
+    let routes = {};
+    let newMove = {};
+    let routeId = null;
+
+    console.log("dama find all moves")
+
+    const findDamaFrontMoves = (col_one, cell, currentGamer) => {
+        // Dama taşının üstünde kalan bölüm
+        // Önde doğru hareket var mı? Bunun için
+        // hemen damanın önünde en az bir rakip
+        // taş olmalı ve o taşın arkasında en az
+        // boş bir kare bulunmalıdır.
+        let deletedItem = null;
+        let deletedItemCell = null;
+        let startingCell = { ...cell };
+        let move = {
+            isMove: false,
+            move: {
+                startingCell: null,
+                deletedItemCell: null,
+                cellsReached: [],
+                deletedItem: null,
+            }
+        };
+        let isStone = false;
+        let isOwnStone = false;
+
+        for (let i = col_one.length - 1; i >= 0; i--) {
+            let cell = col_one[i];
+            console.log("damaFront")
+            console.log(cell.x, cell.y, cell.item)
+            if (cell.item && cell.item.color === currentGamer.color) isOwnStone = true;
+            if (isOwnStone) break;
+            if(isStone && cell.item) break;
+            if (cell.item && cell.item.color !== currentGamer.color) {
+                isStone = true;
+                deletedItem = cell.item;
+                deletedItemCell = cell;
+                continue; // İlk taş bulundu, başa dönelim
+            }
+            if (isStone && !cell.item) {
+                // Taş var ve önü boş
+                move.isMove = true;
+                move.move.startingCell = startingCell;
+                move.move.deletedItemCell = deletedItemCell;
+                move.move.cellsReached.push(cell);
+                move.move.deletedItem = deletedItem;
+            } else if (isStone) {
+                // Eğer peşpeşe iki adet rakip taş varsa
+                // Hareketi durdurmak için eklendi
+                break;
+            }
+        }
+        console.log("damaFront : ", move);
+        return move;
+    }
+
+    const findDamaBackMoves = (col_two, cell, currentGamer) => {
+        // Dama taşının arkasında kalan bölüm
+        // arkaya doğru hareket var mı? Bunun için
+        // hemen damanın akrasında en az bir rakip
+        // taş olmalı ve o taşın arkasında en az
+        // boş bir kare bulunmalıdır.
+        let deletedItem = null;
+        let deletedItemCell = null;
+        let startingCell = { ...cell };
+        let move = {
+            isMove: false,
+            move: {
+                startingCell: null,
+                deletedItemCell: null,
+                cellsReached: [],
+                deletedItem: null,
+            }
+        };
+        let isStone = false;
+        let isOwnStone = false;
+
+        for (let i = 0; i < col_two.length; i++) {
+            let cell = col_two[i];
+            console.log("damaBack")
+            console.log(cell.x, cell.y, cell.item)
+            if (cell.item && cell.item.color === currentGamer.color) isOwnStone = true;
+            if (isOwnStone) break;
+            if(isStone && cell.item) break;
+            if (isStone && !cell.item) {
+                // Taş var ve önü boş
+                move.isMove = true;
+                move.move.startingCell = startingCell;
+                move.move.deletedItemCell = deletedItemCell;
+                move.move.cellsReached.push(cell);
+                move.move.deletedItem = deletedItem;
+            } 
+            if (cell.item && cell.item.color !== currentGamer.color) {
+                isStone = true;
+                deletedItem = cell.item;
+                deletedItemCell = cell;
+                continue; // İlk taş bulundu, başa dönelim
+            }
+        }
+        return move;
+    }
+
+    const findDamaLeftMoves = (row_one, cell, currentGamer) => {
+        let deletedItem = null;
+        let deletedItemCell = null;
+        let startingCell = { ...cell };
+        let move = {
+            isMove: false,
+            move: {
+                startingCell: null,
+                deletedItemCell: null,
+                cellsReached: [],
+                deletedItem: null,
+            }
+        };
+        let isStone = false;
+        let isOwnStone = false;
+        for (let i = row_one.length - 1; i >= 0; i--) {
+            let cell = row_one[i];
+            if (cell.item && cell.item.color === currentGamer.color) isOwnStone = true;
+            if (isOwnStone) break;
+            if (cell.item && cell.item.color !== currentGamer.color) {
+                isStone = true;
+                deletedItem = cell.item;
+                deletedItemCell = cell;
+                continue; // İlk taş bulundu, başa dönelim
+            }
+            if (isStone && !cell.item) {
+                // Taş var ve önü boş
+                move.isMove = true;
+                move.move.startingCell = startingCell;
+                move.move.deletedItemCell = deletedItemCell;
+                move.move.cellsReached.push(cell);
+                move.move.deletedItem = deletedItem;
+            }
+        }
+        return move;
+    }
+
+    const findDamaRightMoves = (row_two, cell, currentGamer) => {
+        let deletedItem = null;
+        let deletedItemCell = null;
+        let startingCell = { ...cell };
+        let move = {
+            isMove: false,
+            move: {
+                startingCell: null,
+                deletedItemCell: null,
+                cellsReached: [],
+                deletedItem: null,
+            }
+        };
+        let isStone = false;
+        let isOwnStone = false;
+        for (let i = 0; i < row_two.length; i++) {
+            let cell = row_two[i];
+            if (cell.item && cell.item.color === currentGamer.color) isOwnStone = true;
+            if (isOwnStone) break;
+            if (cell.item && cell.item.color !== currentGamer.color) {
+                isStone = true;
+                deletedItem = cell.item;
+                deletedItemCell = cell;
+                continue; // İlk taş bulundu, başa dönelim
+            }
+            if (isStone && !cell.item) {
+                // Taş var ve önü boş
+                move.isMove = true;
+                move.move.startingCell = startingCell;
+                move.move.deletedItemCell = deletedItemCell;
+                move.move.cellsReached.push(cell);
+                move.move.deletedItem = deletedItem;
+            }
+        }
+        return move;
+    }
+
+    // Dama olan taş öne, arkaya, sağa ve sola hareket edebilir
+    // Dama olan taş dikey veya yatay istediği kadar gidebilir
+    const x = cell.x;
+    const y = cell.y;
+    const row = [];
+    const col = [];
+
+    // Damanın olduğu satır ve sütündaki hücreleri bulalım
+    for (let key in board) {
+        let cell = board[key];
+        if (cell.y === y) row.push(cell);
+        if (cell.x === x) col.push(cell);
+    }
+
+    const row_one = row.splice(0, x - 1);
+    const row_two = row.splice(1);
+
+    col.reverse()
+    const col_one = col.splice(0, y - 1);
+    const col_two = col.splice(1);
+    newMove = findDamaFrontMoves(col_one, cell, currentGamer);
+    if (newMove.isMove) {
+        routeId = nanoid();
+        routes[routeId] = {
+            // id: nanoid(),
+            moves: [newMove.move],
+            isDama: true,
+        }
+    }
+
+    newMove = findDamaBackMoves(col_two, cell, currentGamer);
+    if (newMove.isMove) {
+        routeId = nanoid();
+        routes[routeId] = {
+            // id: nanoid(),
+            moves: [newMove.move],
+            isDama: true,
+        }
+    }
+
+    newMove = findDamaLeftMoves(row_one, cell, currentGamer);
+    if (newMove.isMove) {
+        routeId = nanoid();
+        routes[routeId] = {
+            // id: nanoid(),
+            moves: [newMove.move],
+            isDama: true,
+        }
+    }
+
+    newMove = findDamaRightMoves(row_two, cell, currentGamer);
+
+    if (newMove.isMove) {
+        routeId = nanoid();
+        routes[routeId] = {
+            // id: nanoid(),
+            moves: [newMove.move],
+            isDama: true,
+        }
+    }
+
+    return routes;
+}
+
 const findAllMandatoryMoves = (b, cs, currentGamer, bb) => {
     // b board, c cells 
     // gelen hücrelerde hareket eden taşlar var
@@ -315,7 +560,9 @@ const findAllMandatoryMoves = (b, cs, currentGamer, bb) => {
 
     // Gelen tüm taşlar için zorunlu hareketleri araştıralım
     cells.forEach(cell => {
-        let newRoutes = findAllMoves(board, cell, currentGamer, bb);
+        let newRoutes = null;
+        if (cell.item && cell.item.dama) newRoutes = findDamaAllMoves(board, cell, currentGamer, bb);
+        else newRoutes = findAllMoves(board, cell, currentGamer, bb);
         cellsMoves.push({ cellId: cell.id, routes: { ...newRoutes } });
     });
 
@@ -330,7 +577,9 @@ const markMovedItems = (cellMoves, b) => {
     const markTheCell = (route, b) => {
         console.log(route)
         // b[route.moves[0].cellReached.id].reached = true;
-        b[route.moves[0].cellReached.id].navigable = true;
+        if (!route.isDama) b[route.moves[0].cellReached.id].navigable = true;
+        else route.moves[0].cellsReached.forEach(cell => b[cell.id].navigable = true)
+
         b[route.moves[0].deletedItemCell.id].item.willDelete = true;
         b[route.moves[0].startingCell.id].startingCell = true;
         b[route.moves[0].startingCell.id].item.forcedMove = true;
@@ -347,7 +596,7 @@ const markMovedItems = (cellMoves, b) => {
         };
     });
     let isMove = false;
-    console.log("cellMoves before isMove print : ", cellMoves)
+
     if (cellMoves.length && Object.keys(cellMoves[0].routes).length) isMove = true;
     return isMove;
 }
@@ -424,7 +673,7 @@ export const gameFindWhiteDamaMoves = (data) => {
     const col = [];
 
     // Damanın olduğu satır ve sütündaki hücreleri bulalım
-    for (let key in board)  {
+    for (let key in board) {
         let cell = board[key];
         if (cell.y === y) row.push(cell);
         if (cell.x === x) col.push(cell);
@@ -433,19 +682,19 @@ export const gameFindWhiteDamaMoves = (data) => {
     // Satır üzerinde (x ekseni) hareket var mı?
     // Damanın olduğu yerden elimizdeki satırı dizisini
     // ikiye bölelim
-    const row_one = row.splice(0, x-1);
+    const row_one = row.splice(0, x - 1);
     const row_two = row.splice(1);
 
     let isStone = false;
-    for(let i = row_one.length-1; i >= 0; i--) {
+    for (let i = row_one.length - 1; i >= 0; i--) {
         let cell = row_one[i];
-        if(!isStone && !cell.item) cell.navigable = true;
+        if (!isStone && !cell.item) cell.navigable = true;
         else isStone = true;
     }
     isStone = false;
-    for(let i = 0; i < row_two.length; i++) {
+    for (let i = 0; i < row_two.length; i++) {
         let cell = row_two[i];
-        if(!isStone && !cell.item) cell.navigable = true;
+        if (!isStone && !cell.item) cell.navigable = true;
         else isStone = true;
     }
 
@@ -453,21 +702,21 @@ export const gameFindWhiteDamaMoves = (data) => {
     // Damanın olduğu yerden elimizdeki col dizisini
     // ikiye bölelim
     col.reverse()
-    const col_one = col.splice(0, y-1);
+    const col_one = col.splice(0, y - 1);
     const col_two = col.splice(1);
 
     isStone = false;
-    for(let i = col_one.length-1; i >= 0;  i--) {
+    for (let i = col_one.length - 1; i >= 0; i--) {
         let cell = col_one[i];
-        if(!isStone && !cell.item) cell.navigable = true;
+        if (!isStone && !cell.item) cell.navigable = true;
         else isStone = true;
     }
     isStone = false;
-    for(let i = 0; i < col_two.length; i++ ) {
+    for (let i = 0; i < col_two.length; i++) {
 
         let cell = col_two[i];
-        if(cell.item) console.log(cell.item.id, cell.item.color)
-        if(!isStone && !cell.item) cell.navigable = true;
+        if (cell.item) console.log(cell.item.id, cell.item.color)
+        if (!isStone && !cell.item) cell.navigable = true;
         else isStone = true;
     }
 
@@ -482,7 +731,7 @@ export const gameFindBlackDamaMoves = (data) => {
     const col = [];
 
     // Damanın olduğu satır ve sütündaki hücreleri bulalım
-    for (let key in board)  {
+    for (let key in board) {
         let cell = board[key];
         if (cell.y === y) row.push(cell);
         if (cell.x === x) col.push(cell);
@@ -491,19 +740,19 @@ export const gameFindBlackDamaMoves = (data) => {
     // Satır üzerinde (x ekseni) hareket var mı?
     // Damanın olduğu yerden elimizdeki satırı dizisini
     // ikiye bölelim
-    const row_one = row.splice(0, x-1);
+    const row_one = row.splice(0, x - 1);
     const row_two = row.splice(1);
 
     let isStone = false;
-    for(let i = row_one.length-1; i >= 0; i--) {
+    for (let i = row_one.length - 1; i >= 0; i--) {
         let cell = row_one[i];
-        if(!isStone && !cell.item) cell.navigable = true;
+        if (!isStone && !cell.item) cell.navigable = true;
         else isStone = true;
     }
     isStone = false;
-    for(let i = 0; i < row_two.length; i++) {
+    for (let i = 0; i < row_two.length; i++) {
         let cell = row_two[i];
-        if(!isStone && !cell.item) cell.navigable = true;
+        if (!isStone && !cell.item) cell.navigable = true;
         else isStone = true;
     }
 
@@ -511,22 +760,22 @@ export const gameFindBlackDamaMoves = (data) => {
     // Damanın olduğu yerden elimizdeki col dizisini
     // ikiye bölelim
     col.reverse()
-    const col_one = col.splice(0, y-1);
+    const col_one = col.splice(0, y - 1);
     const col_two = col.splice(1);
 
     isStone = false;
-    for(let i = col_one.length-1; i >= 0;  i--) {
+    for (let i = col_one.length - 1; i >= 0; i--) {
         let cell = col_one[i];
         console.log("part 1 ", cell.x, cell.y)
-        if(!isStone && !cell.item) cell.navigable = true;
+        if (!isStone && !cell.item) cell.navigable = true;
         else isStone = true;
     }
     isStone = false;
-    for(let i = 0; i < col_two.length; i++ ) {
+    for (let i = 0; i < col_two.length; i++) {
 
         let cell = col_two[i];
-        if(cell.item) console.log(cell.item.id, cell.item.color)
-        if(!isStone && !cell.item) cell.navigable = true;
+        if (cell.item) console.log(cell.item.id, cell.item.color)
+        if (!isStone && !cell.item) cell.navigable = true;
         else isStone = true;
     }
 }
@@ -535,6 +784,7 @@ export const gameFindWhiteMoves = (data) => {
     const board = data.board;
     const selectedCell = board[data.selectedCell.id];
 
+    // const selectedCell = state.board[state.selectedItem.cellId];
     for (let cell in board) {
         // Öndeki kare boş mu? x + 1
         if (((selectedCell.y + 1) === board[cell].y)
