@@ -459,7 +459,6 @@ export const gameFindWhiteDamaMoves = (data) => {
     isStone = false;
     for(let i = col_one.length-1; i >= 0;  i--) {
         let cell = col_one[i];
-        console.log("part 1 ", cell.x, cell.y)
         if(!isStone && !cell.item) cell.navigable = true;
         else isStone = true;
     }

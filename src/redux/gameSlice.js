@@ -107,7 +107,7 @@ export const gameSlice = createSlice({
                 isMove = findMandatoryMoves(state.board, state.currentGamer);
             }
 
-            if (isMove && itemDeleted) state.isForcedMove = true;
+            else if (isMove && itemDeleted) state.isForcedMove = true;
             else if (isMove)  state.isForcedMove = true;
             else if (!isMove && itemDeleted) state.isForcedMove = false;
         },
