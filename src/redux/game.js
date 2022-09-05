@@ -577,8 +577,15 @@ const markMovedItems = (cellMoves, b) => {
     const markTheCell = (route, b) => {
         console.log(route)
         // b[route.moves[0].cellReached.id].reached = true;
-        if (!route.isDama) b[route.moves[0].cellReached.id].navigable = true;
-        else route.moves[0].cellsReached.forEach(cell => b[cell.id].navigable = true)
+        if (!route.isDama) {
+            b[route.moves[0].cellReached.id].navigable = true;
+            b[route.moves[0].cellReached.id].deletedItem = b[route.moves[0].deletedItemCell.id].item;
+        } else {
+            route.moves[0].cellsReached.forEach(cell => {
+                b[cell.id].navigable = true;
+                b[cell.id].deletedItem = b[route.moves[0].deletedItemCell.id].item;
+            });
+        }
 
         b[route.moves[0].deletedItemCell.id].item.willDelete = true;
         b[route.moves[0].startingCell.id].startingCell = true;

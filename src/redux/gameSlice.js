@@ -34,7 +34,12 @@ export const gameSlice = createSlice({
             if (state.selectedItem) {// Seçili taş var seçimi iptal et
                 state.board[state.selectedItem.cellId].item.isSelected = '';
                 // Eğer herhangi bir taşa basılmıyorsa 
-                if(!state.isForcedMove) for (let cell in state.board) state.board[cell].navigable = false;
+                if(!state.isForcedMove) {
+                    for (let cell in state.board) {
+                        state.board[cell].navigable = false;
+                        state.board[cell].deletedItem = null;
+                    }
+                }
                 state.lastCell = null;
                 state.selectedItem = null;
                 return;
@@ -75,7 +80,6 @@ export const gameSlice = createSlice({
             state.board[action.payload.id].item.isSelected = '';
             state.board[action.payload.id].item.cellId = action.payload.id;
             state.selectedItem = null;
-            state.currentCell = null;
             state.lastCell = null;
             // Eğer bir hareket varsa oyuncu değişmiştir.
             // Bu nedenle oyuncuyu önceden değiştirelim.
@@ -87,12 +91,16 @@ export const gameSlice = createSlice({
                 // state.board[cell].reached = false;
                 state.board[cell].startingCell = false;
                 state.isForcedMove = false;
-                if (state.board[cell].item && state.board[cell].item.willDelete) {
+                if (state.board[cell].item
+                    && state.board[cell].item.willDelete
+                    && state.currentCell.deletedItem
+                    && state.currentCell.deletedItem.id === state.board[cell].item.id) {
                     delete state.board[cell].item;
                     itemDeleted = true;
                 }
-
+                state.currentCell.itemDeleted = null;
             }
+            state.currentCell = null;
             // Eğer alınan taş varsa varsayılan olarak güncell oyuncu
             // yukarıda değiştiği için tekrar geri çevir ve 
             // taş alan oyuncuya geri dönelim
