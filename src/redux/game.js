@@ -591,7 +591,6 @@ const markMovedItems = (cellMoves, b) => {
         for (let key in cell.routes) {
             // hareketleri alalım;
             let route = cell.routes[key];
-            console.log(route)
             markTheCell(route, b);
         };
     });
