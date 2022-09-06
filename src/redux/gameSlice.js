@@ -10,10 +10,12 @@ export const gameSlice = createSlice({
         selectedItem: null,
         lastCell: null,
         currentCell: null,
-        gamerOne: { id: nanoid(), name: 'White', color: 'white' },
-        gamerTwo: { id: nanoid(), name: 'Black', color: 'black' },
+        gamerOne: { id: nanoid(), name: 'White', color: 'white', stones: 16 },
+        gamerTwo: { id: nanoid(), name: 'Black', color: 'black', stones: 16 },
         currentGamer: null,
         isForcedMove: false,
+        isGameOver: false,
+        winner: null,
     },
     reducers: {
         initGame: (state, action) => {
@@ -22,19 +24,23 @@ export const gameSlice = createSlice({
             state.isForcedMove = false;
             state.selectedItem = null;
             state.lastCell = null;
+            state.isGameOver = false;
+            state.winner = null;
         },
         resetGame: (state, action) => {
             state.board = createBoard();
+            state.currentGamer = state.gamerOne;
             state.isForcedMove = false;
             state.selectedItem = null;
             state.lastCell = null;
-            state.currentGamer = state.gamerOne;
+            state.isGameOver = false;
+            state.winner = null;
         },
         setSelectedItem: (state, action) => {
             if (state.selectedItem) {// Seçili taş var seçimi iptal et
                 state.board[state.selectedItem.cellId].item.isSelected = '';
                 // Eğer herhangi bir taşa basılmıyorsa 
-                if(!state.isForcedMove) {
+                if (!state.isForcedMove) {
                     for (let cell in state.board) {
                         state.board[cell].navigable = false;
                         state.board[cell].deletedItem = null;
@@ -95,16 +101,34 @@ export const gameSlice = createSlice({
                     && state.board[cell].item.willDelete
                     && state.currentCell.deletedItem
                     && state.currentCell.deletedItem.id === state.board[cell].item.id) {
+                    state.board[cell].item.color === 'white' ? state.gamerOne.stones-- : state.gamerTwo.stones--;
                     delete state.board[cell].item;
                     itemDeleted = true;
+
                 }
                 state.currentCell.itemDeleted = null;
             }
+
+            // Alınan taş varsa oyun sonucunu denetleyelim
+            if (itemDeleted) {
+                // Eğer alınan taş varsa varsayılan olarak güncell oyuncu
+                // yukarıda değiştiği için tekrar geri çevir ve 
+                // taş alan oyuncuya geri dönelim
+                state.currentGamer = state.currentGamer.id === state.gamerOne.id ? state.gamerTwo : state.gamerOne;
+                // Oyunu kazanan var mı?
+                if (state.gamerOne.stones === 0 || state.gamerTwo.stones === 0) { // Son oynayan oyuncu kazanır
+                    alert(`${state.currentGamer.name} Kazanır`);
+                    state.isGameOver = true;
+                    state.winner = state.currentGamer;
+                } else if(state.gamerOne.stones === 1 && state.gamerTwo.stones ===1) { // Oyun berabere biter.
+                    alert(`Oyun Berabere Biter!`);
+                    state.isGameOver = true;
+                    state.winner = false;
+                }
+            }
             state.currentCell = null;
-            // Eğer alınan taş varsa varsayılan olarak güncell oyuncu
-            // yukarıda değiştiği için tekrar geri çevir ve 
-            // taş alan oyuncuya geri dönelim
-            if (itemDeleted) state.currentGamer = state.currentGamer.id === state.gamerOne.id ? state.gamerTwo : state.gamerOne;
+
+
             isMove = findMandatoryMoves(state.board, state.currentGamer);
 
             // Eğer alınan taş var ve yeni hareket yoksa
@@ -116,14 +140,20 @@ export const gameSlice = createSlice({
             }
 
             else if (isMove && itemDeleted) state.isForcedMove = true;
-            else if (isMove)  state.isForcedMove = true;
+            else if (isMove) state.isForcedMove = true;
             else if (!isMove && itemDeleted) state.isForcedMove = false;
         },
         setItemDama: (state, action) => {
             const cell = state.board[action.payload.cellId];
-            if((cell.y === 8 && cell.item.color === 'white')
+            if(!cell) return;
+            if ((cell.y === 8 && cell.item.color === 'white')
                 || (cell.y === 1 && cell.item.color === 'black'))
                 state.board[action.payload.cellId].item.dama = true;
+        },
+        setWinners: (state, action) => {
+            state.currentGamer = state.currentGamer.id === state.gamerOne.id ? state.gamerTwo : state.gamerOne;
+            if (action.payload) alert(`${state.currentGamer.name} Kazanır`);
+            else alert("Oyun Berabere Biter!")
         }
     }
 });
@@ -132,6 +162,7 @@ export const selectBoard = state => state.game.board;
 export const selectSelectedItem = state => state.game.selectedItem;
 export const selectCurrentGamer = state => state.game.currentGamer;
 export const selectIsForcedMove = state => state.game.isForcedMove;
+export const selectIsGameOver = state => state.game.isGameOver;
 
-export const { initGame, setSelectedItem, moveItem, findWhiteMoves, findWhiteDamaMoves, findBlackMoves, findBlackDamaMoves, resetGame, setItemDama } = gameSlice.actions;
+export const { initGame, setSelectedItem, moveItem, findWhiteMoves, findWhiteDamaMoves, findBlackMoves, findBlackDamaMoves, resetGame, setItemDama, setWinners } = gameSlice.actions;
 export default gameSlice.reducer;

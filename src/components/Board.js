@@ -1,12 +1,19 @@
 import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { findBlackDamaMoves, findBlackMoves, findWhiteDamaMoves, findWhiteMoves, initGame, selectBoard, selectSelectedItem } from '../redux/gameSlice';
+import { findBlackDamaMoves, findBlackMoves, findWhiteDamaMoves, findWhiteMoves, initGame, resetGame, selectBoard, selectIsGameOver, selectSelectedItem } from '../redux/gameSlice';
 import Cell from './Cell';
 
 function Board() {
     const dispatch = useDispatch();
     const board = useSelector(selectBoard);
     const selectedItem = useSelector(selectSelectedItem);
+    const isGameOver = useSelector(selectIsGameOver);
+
+    useEffect(() => {
+        if(isGameOver) {
+            dispatch(resetGame());
+        } 
+    },[isGameOver, dispatch]);
 
     useEffect(() => {
         if(selectedItem === null) return; // Seçili item yok
@@ -21,7 +28,6 @@ function Board() {
 
     useEffect(() => {
         dispatch(initGame());
-
     }, [dispatch]);
 
     return (
